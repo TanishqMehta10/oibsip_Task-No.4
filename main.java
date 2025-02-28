@@ -1,107 +1,63 @@
-import javax.swing.*;
-import java.awt.*;
-import java.util.Timer;
-import java.util.TimerTask;
+package com.mycompany.javapractise;
+import java.util.Random;
+import java.util.Scanner;
 
-public class Main {
-    private final JFrame frame = new JFrame("Online Exam");
-    private final CardLayout cardLayout = new CardLayout();
-    private final JPanel mainPanel = new JPanel(cardLayout);
-    private final JLabel timerLabel = new JLabel("Time Left: 1800s");
-    private final JLabel questionLabel = new JLabel();
-    private final JLabel resultLabel = new JLabel("Your Score: 0/10");
-    private int timeRemaining = 1800, currentQuestionIndex = 0, score = 0;
-    private Timer timer;
-    private final JRadioButton[] options = new JRadioButton[4];
-    private final ButtonGroup group = new ButtonGroup();
-    private final JButton nextButton = new JButton("Next");
-    private final JButton submitButton = new JButton("Submit");
-    private final String[][] questions = {
-            {"What is 2 + 2?", "3", "4", "5", "1"},
-            {"Capital of France?", "Berlin", "Madrid", "Paris", "London"},
-            {"Red Planet?", "Earth", "Mars", "Jupiter", "Venus"},
-            {"Largest Ocean?", "Atlantic", "Indian", "Pacific", "Arctic"},
-            {"Square root of 64?", "6", "8", "10", "12"},
-            {"Fastest land animal?", "Cheetah", "Lion", "Tiger", "Horse"},
-            {"Largest continent?", "Asia", "Europe", "Africa", "Australia"},
-            {"Chemical symbol for Gold?", "Au", "Ag", "Pb", "Fe"},
-            {"Who wrote 'Hamlet'?", "Shakespeare", "Dickens", "Hemingway", "Austen"},
-            {"H2O is the chemical formula for?", "Oxygen", "Hydrogen", "Water", "Helium"}
-    };
-    private final String[] correctAnswers = {"4", "Paris", "Mars", "Pacific", "8", "Cheetah", "Asia", "Au", "Shakespeare", "Water"};
-
-    public Main() {
-        frame.setSize(600, 400);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        mainPanel.add(createLoginPanel(), "Login");
-        mainPanel.add(createExamPanel(), "Exam");
-        mainPanel.add(createResultPanel(), "Result");
-        frame.add(mainPanel);
-        frame.setVisible(true);
-    }
-
-    private JPanel createLoginPanel() {
-        JPanel panel = new JPanel(new GridLayout(3, 2));
-        JTextField userField = new JTextField();
-        JPasswordField passField = new JPasswordField();
-        JButton loginButton = new JButton("Login");
-        loginButton.addActionListener(_ -> { cardLayout.show(mainPanel, "Exam"); startTimer(); loadQuestion(); });
-        panel.add(new JLabel("Username:")); panel.add(userField);
-        panel.add(new JLabel("Password:")); panel.add(passField);
-        panel.add(loginButton);
-        return panel;
-    }
-
-    private JPanel createExamPanel() {
-        JPanel panel = new JPanel(new GridLayout(6, 1));
-        for (int i = 0; i < 4; i++) { options[i] = new JRadioButton(); group.add(options[i]); panel.add(options[i]); }
-        nextButton.addActionListener(_ -> { checkAnswer(); currentQuestionIndex++; loadQuestion(); });
-        submitButton.addActionListener(_ -> submitExam());
-        panel.add(questionLabel); panel.add(nextButton); panel.add(submitButton); panel.add(timerLabel);
-        return panel;
-    }
-
-    private void loadQuestion() {
-        if (currentQuestionIndex < questions.length) {
-            group.clearSelection();
-            questionLabel.setText("Q" + (currentQuestionIndex + 1) + ": " + questions[currentQuestionIndex][0]);
-            for (int i = 0; i < 4; i++) options[i].setText(questions[currentQuestionIndex][i + 1]);
-            nextButton.setEnabled(currentQuestionIndex < questions.length - 1);
-            submitButton.setEnabled(currentQuestionIndex == questions.length - 1);
-        }
-    }
-
-    private void startTimer() {
-        timer = new Timer();
-        timer.scheduleAtFixedRate(new TimerTask() {
-            public void run() {
-                timerLabel.setText("Time Left: " + (--timeRemaining) + "s");
-                if (timeRemaining <= 0) { timer.cancel(); submitExam(); }
-            }
-        }, 1000, 1000);
-    }
-
-    private void checkAnswer() {
-        for (JRadioButton option : options)
-            if (option.isSelected() && option.getText().equals(correctAnswers[currentQuestionIndex])) score++;
-    }
-
-    private void submitExam() {
-        timer.cancel(); checkAnswer();
-        JOptionPane.showMessageDialog(frame, "Exam Over! Score: " + score + "/" + questions.length, "Exam Finished", JOptionPane.INFORMATION_MESSAGE);
-        cardLayout.show(mainPanel, "Result");
-        resultLabel.setText("Your Score: " + score + "/" + questions.length);
-    }
-
-    private JPanel createResultPanel() {
-        JPanel panel = new JPanel(new GridLayout(2, 1));
-        JButton logoutButton = new JButton("Logout");
-        logoutButton.addActionListener(_ -> { timeRemaining = 1800; currentQuestionIndex = 0; score = 0; cardLayout.show(mainPanel, "Login"); });
-        panel.add(resultLabel); panel.add(logoutButton);
-        return panel;
-    }
+public class NumGuessGame {
+    private static final int MAX_ATTEMPTS = 10;
+    private static final int MAX_ROUNDS = 3;
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(Main::new);
+        Scanner scanner = new Scanner(System.in);
+        Random random = new Random();
+        int totalScore = 0;
+        int[] roundScores = new int[MAX_ROUNDS];
+
+        System.out.println("Welcome to Guess the Number Game!");
+        
+        for (int round = 1; round <= MAX_ROUNDS; round++) {
+            int targetNumber = random.nextInt(100) + 1;
+            int attempts = 0;
+            boolean guessedCorrectly = false;
+            
+            System.out.println("\nRound " + round + " begins! Try to guess the number between 1 and 100.");
+            
+            while (attempts < MAX_ATTEMPTS) {
+                System.out.print("Enter your guess: ");
+                int userGuess = scanner.nextInt();
+                attempts++;
+                
+                if (userGuess == targetNumber) {
+                    System.out.println("Congratulations! You guessed the correct number in " + attempts + " attempts.");
+                    int score = (MAX_ATTEMPTS - attempts + 1) * 10;
+                    totalScore += score;
+                    roundScores[round - 1] = score;
+                    guessedCorrectly = true;
+                    break;
+                } else if (userGuess < targetNumber) {
+                    System.out.println("Too low! Try again.");
+                } else {
+                    System.out.println("Too high! Try again.");
+                }
+            }
+            
+            if (!guessedCorrectly) {
+                System.out.println("Out of attempts! The correct number was: " + targetNumber);
+                roundScores[round - 1] = 0;
+            }
+        }
+        
+        // Display score table
+        System.out.println("\nGame Over! Here is your score summary:");
+        System.out.println("---------------------------------");
+        System.out.printf("| %-10s | %-10s |\n", "Round", "Score");
+        System.out.println("---------------------------------");
+        for (int i = 0; i < MAX_ROUNDS; i++) {
+            System.out.printf("| %-10d | %-10d |\n", (i + 1), roundScores[i]);
+        }
+        System.out.println("---------------------------------");
+        System.out.println("Total Score: " + totalScore);
+        scanner.close();
     }
 }
+
+
